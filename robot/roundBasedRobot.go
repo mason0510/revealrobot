@@ -1,7 +1,7 @@
 package revealrobot
 
 import (
-	"./utils/bet"
+	"revealrobot/utils/bet"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"

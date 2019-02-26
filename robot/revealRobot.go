@@ -1,7 +1,7 @@
 package revealrobot
 
 import (
-	"./utils/stringhandler"
+	"revealrobot/utils/stringhandler"
 	"encoding/json"
 	"fmt"
 	"github.com/eoscanada/eos-go"
@@ -22,6 +22,7 @@ var serverConfig = ServerConfig{
 var roundBasedGames = [4]string{"godappbaccar", "godappcbacca", "godapproulet", "godappredbla"}
 var diceGameName = "godappdice12"
 
+
 type Timestamp struct {
 	API  string   `json:"api"`
 	V    string   `json:"v"`
@@ -31,7 +32,7 @@ type Timestamp struct {
 	} `json:"data"`
 }
 
-func main() {
+func RevealRobot() {
 	services := createServices(serverConfig)
 	networkOffset := GetNetWorkOffset()
 	for i := range roundBasedGames {
@@ -77,7 +78,6 @@ func createServices(config ServerConfig) Services {
 	api.SetCustomGetRequiredKeys(func(tx *eos.Transaction) (keys []ecc.PublicKey, e error) {
 		return key, nil
 	})
-
 	api.SetSigner(bag)
 	txOps, _ := getTxOps(api)
 	return Services{*api, txOps, digestSigner, 0}

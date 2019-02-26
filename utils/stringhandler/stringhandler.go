@@ -29,9 +29,7 @@ func FloatToInt(x float64)(int64) {
 }
 
 func GetNetWorkTime() (string, error) {
-
 	timeresp, err := http.Get("http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp")
-
 	fmt.Println("err:", err)
 	if err != nil {
 		return "false", err
@@ -44,8 +42,6 @@ func GetNetWorkTime() (string, error) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	timeresp.Body.Close()
-	//fmt.Printf(string(s))
-
+	defer timeresp.Body.Close()
 	return string(s), nil
 }
