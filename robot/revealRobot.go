@@ -1,6 +1,7 @@
 package revealrobot
 
 import (
+	cf "revealrobot/config"
 	"revealrobot/utils/stringhandler"
 	"encoding/json"
 	"fmt"
@@ -13,14 +14,18 @@ import (
 
 // ===========================     设置信息    ========================================
 
-var serverConfig = ServerConfig{
-	"https://api-kylin.eoslaomao.com",
-	"5Kart9egqapRE6bXvSEr9sAaJecWxAvzZags9B831oab7TK29w7",
-	"codemonkeyte",
-	"5JqyADz2gRjct3E78pYHpxqEN6GbTWcv21GJ8SxExYZEmeQuoRA",
-}
-var roundBasedGames = [4]string{"godappbaccar", "godappcbacca", "godapproulet", "godappredbla"}
-var diceGameName = "godappdice12"
+
+var (
+	testroundBasedGames = [4]string{"godappbaccar", "godappcbacca", "godapproulet", "godappredbla"}
+	testdiceGameName = "godappdice12"
+	roundBasedGames = [4]string{"baccarat.e", "dappbaccarat", "roulette.e", "warofstar.e"}
+	diceGameName = "godice.e"
+	node string
+	revealkey string
+	accountname string
+	reealkey string
+	serverConfig ServerConfig
+	)
 
 
 type Timestamp struct {
@@ -32,8 +37,18 @@ type Timestamp struct {
 	} `json:"data"`
 }
 
+	func Init()  {
+		      serverConfig=ServerConfig{}
+		      serverConfig.node=cf.C.Node
+		      serverConfig.revealKey=cf.C.RevealKey
+		      serverConfig.actorAccountName=cf.C.ActorAccountName
+		      serverConfig.actorAccountKey=cf.C.ActorAccountKey
+	}
+
+
 func RevealRobot() {
 	services := createServices(serverConfig)
+	fmt.Println("RevealRobot",serverConfig)
 	networkOffset := GetNetWorkOffset()
 	for i := range roundBasedGames {
 		robot := RoundBasedRobot{roundBasedGames[i], 0, networkOffset,
@@ -49,7 +64,7 @@ func RevealRobot() {
 }
 
 func GetNetWorkOffset() int64 {
-	timeResp, err := http.Get("http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp")
+	timeResp, err := http.Get(cf.C.TimeUrl)
 	if err != nil {
 		fmt.Println("err", err)
 	}

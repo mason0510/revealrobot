@@ -52,7 +52,6 @@ func (r *RoundBasedRobot) run() {
 			//获取下注时间
 			r.bettime(currentTime)
 		}
-
 		r.services.refresh(currentTime)
 	})
 	if err != nil {

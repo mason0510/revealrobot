@@ -33,6 +33,7 @@ type DiceRobot struct {
 	services *Services
 }
 
+
 func (r *DiceRobot) run() {
 	c := cron.New()
 	spec := "*/1 * * * * ?"
