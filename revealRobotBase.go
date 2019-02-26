@@ -1,6 +1,7 @@
-package main
+package revealrobot
 
 import (
+	"fmt"
 	"github.com/eoscanada/eos-go"
 	"io/ioutil"
 	"net/http"
@@ -38,4 +39,15 @@ func getTableRows(node string, game string, table string) ([]byte, error) {
 		return nil, err
 	}
 	return ioutil.ReadAll(res.Body)
+}
+
+func (s *Services) refresh(currentTime int64) {
+	if currentTime-s.lastRefresh > 60 {
+		s.lastRefresh = currentTime
+		fmt.Println("==========================================更新网络配置==================================================")
+		opts, err := getTxOps(&s.api)
+		if err == nil {
+			s.txOpts = opts
+		}
+	}
 }

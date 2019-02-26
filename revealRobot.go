@@ -1,4 +1,4 @@
-package main
+package revealrobot
 
 import (
 	"./utils/stringhandler"
@@ -87,15 +87,4 @@ func getTxOps(api *eos.API) (eos.TxOptions, error) {
 	opts := *&eos.TxOptions{}
 	err := opts.FillFromChain(api)
 	return opts, err
-}
-
-func (s *Services) refresh(currentTime int64) {
-	if currentTime-s.lastRefresh > 60 {
-		s.lastRefresh = currentTime
-		fmt.Println("==========================================更新网络配置==================================================")
-		opts, err := getTxOps(&s.api)
-		if err == nil {
-			s.txOpts = opts
-		}
-	}
 }

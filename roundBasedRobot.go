@@ -1,4 +1,4 @@
-package main
+package revealrobot
 
 import (
 	"./utils/bet"
@@ -52,6 +52,8 @@ func (r *RoundBasedRobot) run() {
 			//获取下注时间
 			r.bettime(currentTime)
 		}
+
+		r.services.refresh(currentTime)
 	})
 	if err != nil {
 		fmt.Println(err)
