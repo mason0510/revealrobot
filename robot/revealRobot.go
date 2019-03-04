@@ -1,8 +1,8 @@
 package revealrobot
 
 import (
-	cf "revealrobot/config"
-	"revealrobot/utils/stringhandler"
+	cf "../config"
+	"../utils/stringhandler"
 	"encoding/json"
 	"fmt"
 	"github.com/eoscanada/eos-go"
@@ -13,20 +13,13 @@ import (
 )
 
 // ===========================     设置信息    ========================================
-
+const IS_TEST = false
 
 var (
-	testroundBasedGames = [4]string{"godappbaccar", "godappcbacca", "godapproulet", "godappredbla"}
-	testdiceGameName = "godappdice12"
-	roundBasedGames = [4]string{"baccarat.e", "dappbaccarat", "roulette.e", "warofstar.e"}
-	diceGameName = "godice.e"
-	node string
-	revealkey string
-	accountname string
-	reealkey string
-	serverConfig ServerConfig
-	)
-
+	roundBasedGames [4]string
+	diceGameName    string
+	serverConfig    ServerConfig
+)
 
 type Timestamp struct {
 	API  string   `json:"api"`
@@ -37,18 +30,30 @@ type Timestamp struct {
 	} `json:"data"`
 }
 
-	func Init()  {
-		      serverConfig=ServerConfig{}
-		      serverConfig.node=cf.C.Node
-		      serverConfig.revealKey=cf.C.RevealKey
-		      serverConfig.actorAccountName=cf.C.ActorAccountName
-		      serverConfig.actorAccountKey=cf.C.ActorAccountKey
-	}
+func Init() {
+	if IS_TEST {
+		roundBasedGames = [4]string{"godappbaccar", "godappcbacca", "godapproulet", "godappredbla"}
+		diceGameName = "godappdice12"
+		serverConfig = ServerConfig{
+			"https://api-kylin.eoslaomao.com",
+			"5Kart9egqapRE6bXvSEr9sAaJecWxAvzZags9B831oab7TK29w7",
+			"codemonkeyte",
+			"5JqyADz2gRjct3E78pYHpxqEN6GbTWcv21GJ8SxExYZEmeQuoRA"}
+	} else {
+		serverConfig = ServerConfig{}
+		serverConfig.node = cf.C.Node
+		serverConfig.revealKey = cf.C.RevealKey
+		serverConfig.actorAccountName = cf.C.ActorAccountName
+		serverConfig.actorAccountKey = cf.C.ActorAccountKey
 
+		roundBasedGames = [4]string{"baccarat.e", "dappbaccarat", "roulette.e", "warofstar.e"}
+		diceGameName = "godice.e"
+	}
+}
 
 func RevealRobot() {
 	services := createServices(serverConfig)
-	fmt.Println("RevealRobot",serverConfig)
+	fmt.Println("RevealRobot", serverConfig)
 	networkOffset := GetNetWorkOffset()
 	for i := range roundBasedGames {
 		robot := RoundBasedRobot{roundBasedGames[i], 0, networkOffset,

@@ -1,19 +1,20 @@
 package main
 
 import (
+	"./config"
+	"./robot"
+	"./utils/env"
+	"./utils/log"
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"revealrobot/config"
-	"revealrobot/robot"
-	"revealrobot/utils/env"
-	"./utils/log"
 )
+
 var err error
-func Run()  {
+
+func Run() {
 	revealrobot.RevealRobot()
 }
-
 
 func main() {
 	//init log
@@ -26,8 +27,8 @@ func main() {
 	flag.Parse()
 	fmt.Println("config filename:", *filename)
 	data, err := ioutil.ReadFile(*filename)
-	if err!=nil {
-		fmt.Println("initconfig failed! %v",err)
+	if err != nil {
+		fmt.Println("initconfig failed! %v", err)
 	}
 	//set data
 	env.ErrExit(config.InitConfig(data))

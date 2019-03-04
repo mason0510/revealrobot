@@ -8,7 +8,7 @@ import (
 
 	"time"
 
-	"revealrobot/utils/env"
+	"../env"
 
 	"runtime"
 
@@ -237,4 +237,3 @@ func Debug(format string, v ...interface{}) {
 func RawLogger() *log.Logger {
 	return _logger.log
 }
-
