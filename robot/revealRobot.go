@@ -18,6 +18,7 @@ const IS_TEST = false
 var (
 	roundBasedGames [4]string
 	diceGameName    string
+	scratchGameName string
 	serverConfig    ServerConfig
 )
 
@@ -34,6 +35,7 @@ func Init() {
 	if IS_TEST {
 		roundBasedGames = [4]string{"godappbaccar", "godappcbacca", "godapproulet", "godappredbla"}
 		diceGameName = "godappdice12"
+		scratchGameName = "godappscratc"
 		serverConfig = ServerConfig{
 			"https://api-kylin.eoslaomao.com",
 			"5Kart9egqapRE6bXvSEr9sAaJecWxAvzZags9B831oab7TK29w7",
@@ -48,6 +50,7 @@ func Init() {
 
 		roundBasedGames = [4]string{"baccarat.e", "dappbaccarat", "roulette.e", "warofstar.e"}
 		diceGameName = "godice.e"
+		scratchGameName = ""
 	}
 }
 
@@ -65,6 +68,8 @@ func RevealRobot() {
 	}
 	dice := DiceRobot{diceGameName, &serverConfig, &services}
 	dice.run()
+	scratch := ScratchRobot{scratchGameName, &serverConfig, &services}
+	scratch.run()
 	select {}
 }
 
