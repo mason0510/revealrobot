@@ -13,13 +13,14 @@ import (
 )
 
 // ===========================     设置信息    ========================================
-const IS_TEST = false
+const IS_TEST = true
 
 var (
-	roundBasedGames [4]string
-	diceGameName    string
-	scratchGameName string
-	serverConfig    ServerConfig
+	roundBasedGames   [4]string
+	diceGameName      string
+	scratchGameName   string
+	blackjackGameName string
+	serverConfig      ServerConfig
 )
 
 type Timestamp struct {
@@ -36,6 +37,7 @@ func Init() {
 		roundBasedGames = [4]string{"godappbaccar", "godappcbacca", "godapproulet", "godappredbla"}
 		diceGameName = "godappdice12"
 		scratchGameName = "godappscratc"
+		blackjackGameName = "godappblackj"
 		serverConfig = ServerConfig{
 			"https://api-kylin.eoslaomao.com",
 			"5Kart9egqapRE6bXvSEr9sAaJecWxAvzZags9B831oab7TK29w7",
@@ -51,6 +53,7 @@ func Init() {
 		roundBasedGames = [4]string{"baccarat.e", "dappbaccarat", "roulette.e", "warofstar.e"}
 		diceGameName = "godice.e"
 		scratchGameName = ""
+		blackjackGameName = "blackjack.e"
 	}
 }
 
@@ -70,6 +73,8 @@ func RevealRobot() {
 	dice.run()
 	scratch := ScratchRobot{scratchGameName, &serverConfig, &services}
 	scratch.run()
+	blackjack := BlackjackRobot{blackjackGameName, &serverConfig, &services}
+	blackjack.run()
 	select {}
 }
 

@@ -7,50 +7,41 @@ import (
 	"github.com/eoscanada/eos-go"
 	"github.com/eoscanada/eos-go/ecc"
 	"github.com/robfig/cron"
-	"strconv"
 )
 
-type ActiveCardTable struct {
+type BlackJackActionTable struct {
 	Rows []struct {
-		Id       eos.Uint64      `json:"id"`
-		Player   eos.Name        `json:"player"`
-		Referer  eos.Name        `json:"referer"`
-		CardType eos.Uint64      `json:"card_type"`
-		Price    eos.Asset       `json:"price"`
-		Reward   eos.Asset       `json:"reward"`
-		Result   eos.Uint64      `json:"result"`
-		Seed     eos.Checksum256 `json:"seed"`
-		Time     string          `json:"time"`
+		Id     eos.Uint64      `json:"game_id"`
+		Action eos.Uint64      `json:"action"`
+		Seed   eos.Checksum256 `json:"seed"`
 	} `json:"rows"`
 	More bool `json:"more"`
 }
 
-type ScratchRevealData struct {
-	BetId     eos.Uint64    `json:"card_id"`
+type BlackjackRevealData struct {
+	BetId     eos.Uint64    `json:"id"`
 	Signature ecc.Signature `json:"signature"`
 }
 
-type ScratchRobot struct {
+type BlackjackRobot struct {
 	name     string
 	config   *ServerConfig
 	services *Services
 }
 
-func (r *ScratchRobot) run() {
+func (r *BlackjackRobot) run() {
 	c := cron.New()
 	spec := "*/1 * * * * ?"
 	_ = c.AddFunc(spec, func() {
-		body, err := getTableRows(r.config.node, r.name, "activecard")
+		body, err := getTableRows(r.config.node, r.name, "actions")
 		if err == nil {
-			var list ActiveCardTable
+			var list BlackJackActionTable
 			err = json.Unmarshal(body, &list)
 
 			if err == nil {
 				for _, row := range list.Rows {
-					if row.Result == 0 {
-						fmt.Println("=======================刮刮乐开奖 " + strconv.Itoa(int(row.Id)) + "=============================")
-						r.pushAction(row.Id, row.Seed)
-					}
+					fmt.Println("=======================21点发牌 " + string(row.Id) + "=============================")
+					r.pushAction(row.Id, row.Seed)
 				}
 			}
 		}
@@ -58,14 +49,14 @@ func (r *ScratchRobot) run() {
 	c.Start()
 }
 
-func (r *ScratchRobot) pushAction(cardId eos.Uint64, seed eos.Checksum256) {
+func (r *BlackjackRobot) pushAction(id eos.Uint64, seed eos.Checksum256) {
 	keys, err := r.services.digestSigner.AvailableKeys()
 	digest, err := hex.DecodeString(seed.String())
 	sig, err := r.services.digestSigner.SignDigest(digest, keys[0])
-	data := ScratchRevealData{cardId, sig}
+	data := BlackjackRevealData{id, sig}
 	action := eos.Action{
 		Account: eos.AccountName(r.name),
-		Name:    "reveal",
+		Name:    "resolve",
 		Authorization: []eos.PermissionLevel{
 			{Actor: eos.AccountName(r.config.actorAccountName), Permission: eos.PN("active")}, //owner active
 		},
