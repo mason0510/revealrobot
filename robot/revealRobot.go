@@ -20,6 +20,7 @@ var (
 	diceGameName      string
 	scratchGameName   string
 	blackjackGameName string
+	slotsGameName     string
 	serverConfig      ServerConfig
 )
 
@@ -38,6 +39,7 @@ func Init() {
 		diceGameName = "godappdice12"
 		scratchGameName = "godappscratc"
 		blackjackGameName = "godappblackj"
+		slotsGameName = "godappslots1"
 		serverConfig = ServerConfig{
 			"https://api-kylin.eoslaomao.com",
 			"5Kart9egqapRE6bXvSEr9sAaJecWxAvzZags9B831oab7TK29w7",
@@ -52,7 +54,8 @@ func Init() {
 
 		roundBasedGames = [4]string{"baccarat.e", "dappbaccarat", "roulette.e", "warofstar.e"}
 		diceGameName = "godice.e"
-		scratchGameName = ""
+		scratchGameName = "scratchers55"
+		slotsGameName = ""
 		blackjackGameName = "blackjack.e"
 	}
 }
