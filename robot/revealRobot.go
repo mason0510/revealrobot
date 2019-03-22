@@ -78,6 +78,8 @@ func RevealRobot() {
 	scratch.run()
 	blackjack := BlackjackRobot{blackjackGameName, &serverConfig, &services}
 	blackjack.run()
+	slots := SlotsRobot{slotsGameName, &serverConfig, &services}
+	slots.run()
 	select {}
 }
 
