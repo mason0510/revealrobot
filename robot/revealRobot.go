@@ -16,7 +16,7 @@ import (
 const IS_TEST = true
 
 var (
-	roundBasedGames   [4]string
+	roundBasedGames   [5]string
 	diceGameName      string
 	scratchGameName   string
 	blackjackGameName string
@@ -35,7 +35,7 @@ type Timestamp struct {
 
 func Init() {
 	if IS_TEST {
-		roundBasedGames = [4]string{"godappbaccar", "godappcbacca", "godapproulet", "godappredbla"}
+		roundBasedGames = [5]string{"godappbaccar", "godappcbacca", "godapproulet", "godappredbla", "godappbullfi"}
 		diceGameName = "godappdice12"
 		scratchGameName = "godappscratc"
 		blackjackGameName = "godappblackj"
@@ -52,7 +52,7 @@ func Init() {
 		serverConfig.actorAccountName = cf.C.ActorAccountName
 		serverConfig.actorAccountKey = cf.C.ActorAccountKey
 
-		roundBasedGames = [4]string{"baccarat.e", "dappbaccarat", "roulette.e", "warofstar.e"}
+		roundBasedGames = [5]string{"baccarat.e", "dappbaccarat", "roulette.e", "warofstar.e", ""}
 		diceGameName = "godice.e"
 		scratchGameName = "scratchers55"
 		slotsGameName = ""
