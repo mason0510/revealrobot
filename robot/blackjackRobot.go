@@ -1,12 +1,12 @@
 package revealrobot
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/eoscanada/eos-go"
 	"github.com/eoscanada/eos-go/ecc"
-	"github.com/robfig/cron"
 )
 
 type BlackJackActionTable struct {
@@ -30,9 +30,9 @@ type BlackjackRobot struct {
 }
 
 func (r *BlackjackRobot) run() {
-	c := cron.New()
+	c := NewWithSecond()
 	spec := "*/1 * * * * ?"
-	_ = c.AddFunc(spec, func() {
+	_, _ = c.AddFunc(spec, func() {
 		body, err := getTableRows(r.config.node, r.name, "actions")
 		if err == nil {
 			var list BlackJackActionTable
@@ -50,7 +50,7 @@ func (r *BlackjackRobot) run() {
 }
 
 func (r *BlackjackRobot) pushAction(id eos.Uint64, seed eos.Checksum256) {
-	keys, err := r.services.digestSigner.AvailableKeys()
+	keys, err := r.services.digestSigner.AvailableKeys(context.Background())
 	digest, err := hex.DecodeString(seed.String())
 	sig, err := r.services.digestSigner.SignDigest(digest, keys[0])
 	data := BlackjackRevealData{id, sig}
@@ -64,13 +64,13 @@ func (r *BlackjackRobot) pushAction(id eos.Uint64, seed eos.Checksum256) {
 	}
 
 	tx := eos.NewTransaction([]*eos.Action{&action}, &r.services.txOpts)
-	signedTx, packedTx, err := r.services.api.SignTransaction(tx, r.services.txOpts.ChainID, eos.CompressionNone)
+	signedTx, packedTx, err := r.services.api.SignTransaction(context.Background(), tx, r.services.txOpts.ChainID, eos.CompressionNone)
 	if err == nil {
 		_, err = json.MarshalIndent(signedTx, "", "")
 		if err == nil {
 			_, err = json.Marshal(packedTx)
 			if err == nil {
-				response, err := r.services.api.PushTransaction(packedTx)
+				response, err := r.services.api.PushTransaction(context.Background(), packedTx)
 				if err != nil {
 					fmt.Println(err)
 				} else {

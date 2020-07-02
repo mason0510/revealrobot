@@ -1,6 +1,7 @@
 package revealrobot
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -39,7 +40,7 @@ type ScratchRobot struct {
 func (r *ScratchRobot) run() {
 	c := cron.New()
 	spec := "*/1 * * * * ?"
-	_ = c.AddFunc(spec, func() {
+	c.AddFunc(spec, func() {
 		body, err := getTableRows(r.config.node, r.name, "activecard")
 		if err == nil {
 			var list ActiveCardTable
@@ -59,7 +60,7 @@ func (r *ScratchRobot) run() {
 }
 
 func (r *ScratchRobot) pushAction(cardId eos.Uint64, seed eos.Checksum256) {
-	keys, err := r.services.digestSigner.AvailableKeys()
+	keys, err := r.services.digestSigner.AvailableKeys(context.Background())
 	digest, err := hex.DecodeString(seed.String())
 	sig, err := r.services.digestSigner.SignDigest(digest, keys[0])
 	data := ScratchRevealData{cardId, sig}
@@ -73,13 +74,13 @@ func (r *ScratchRobot) pushAction(cardId eos.Uint64, seed eos.Checksum256) {
 	}
 
 	tx := eos.NewTransaction([]*eos.Action{&action}, &r.services.txOpts)
-	signedTx, packedTx, err := r.services.api.SignTransaction(tx, r.services.txOpts.ChainID, eos.CompressionNone)
+	signedTx, packedTx, err := r.services.api.SignTransaction(context.Background(), tx, r.services.txOpts.ChainID, eos.CompressionNone)
 	if err == nil {
 		_, err = json.MarshalIndent(signedTx, "", "")
 		if err == nil {
 			_, err = json.Marshal(packedTx)
 			if err == nil {
-				response, err := r.services.api.PushTransaction(packedTx)
+				response, err := r.services.api.PushTransaction(context.Background(), packedTx)
 				if err != nil {
 					fmt.Println(err)
 				} else {

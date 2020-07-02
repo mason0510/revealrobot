@@ -3,6 +3,7 @@ package revealrobot
 import (
 	cf "../config"
 	"../utils/stringhandler"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/eoscanada/eos-go"
@@ -51,7 +52,6 @@ func Init() {
 		serverConfig.revealKey = cf.C.RevealKey
 		serverConfig.actorAccountName = cf.C.ActorAccountName
 		serverConfig.actorAccountKey = cf.C.ActorAccountKey
-
 		roundBasedGames = [6]string{"baccarat.e", "dappbaccarat", "roulette.e", "warofstar.e", "bairenniuniu", ""}
 		diceGameName = "godice.e"
 		scratchGameName = "scratchers55"
@@ -64,22 +64,25 @@ func RevealRobot() {
 	services := createServices(serverConfig)
 	fmt.Println("RevealRobot", serverConfig)
 	networkOffset := GetNetWorkOffset()
+	//fmt.Println("networkOffset:",networkOffset)
 	for i := range roundBasedGames {
+		fmt.Println("qqqq")
 		robot := RoundBasedRobot{roundBasedGames[i], 0, networkOffset,
 			RoundStatus{0, 0, 0, ""},
 			&serverConfig,
 			&services,
 		}
+		//start
 		robot.run()
 	}
-	dice := DiceRobot{diceGameName, &serverConfig, &services}
-	dice.run()
-	scratch := ScratchRobot{scratchGameName, &serverConfig, &services}
-	scratch.run()
-	blackjack := BlackjackRobot{blackjackGameName, &serverConfig, &services}
-	blackjack.run()
-	slots := SlotsRobot{slotsGameName, &serverConfig, &services}
-	slots.run()
+	//	dice := DiceRobot{diceGameName, &serverConfig, &services}
+	//	dice.run()
+	//	scratch := ScratchRobot{scratchGameName, &serverConfig, &services}
+	//	scratch.run()
+	//	blackjack := BlackjackRobot{blackjackGameName, &serverConfig, &services}
+	//	blackjack.run()
+	//	slots := SlotsRobot{slotsGameName, &serverConfig, &services}
+	//	slots.run()
 	select {}
 }
 
@@ -104,13 +107,13 @@ func GetNetWorkOffset() int64 {
 
 func createServices(config ServerConfig) Services {
 	digestSigner := *eos.NewKeyBag()
-	_ = digestSigner.ImportPrivateKey(config.revealKey)
+	_ = digestSigner.ImportPrivateKey(context.Background(), config.revealKey)
 
 	api := eos.New(config.node)
 	bag := eos.NewKeyBag()
 	_ = bag.Add(config.actorAccountKey)
-	key, _ := bag.AvailableKeys()
-	api.SetCustomGetRequiredKeys(func(tx *eos.Transaction) (keys []ecc.PublicKey, e error) {
+	key, _ := bag.AvailableKeys(context.Background())
+	api.SetCustomGetRequiredKeys(func(ctx context.Context, tx *eos.Transaction) (keys []ecc.PublicKey, e error) {
 		return key, nil
 	})
 	api.SetSigner(bag)
@@ -120,6 +123,6 @@ func createServices(config ServerConfig) Services {
 
 func getTxOps(api *eos.API) (eos.TxOptions, error) {
 	opts := *&eos.TxOptions{}
-	err := opts.FillFromChain(api)
+	err := opts.FillFromChain(context.Background(), api)
 	return opts, err
 }

@@ -2,6 +2,7 @@ package revealrobot
 
 import (
 	"../utils/bet"
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -28,20 +29,20 @@ type RoundBasedRobot struct {
 	count         int
 	networkOffset int64
 	status        RoundStatus
-
-	config   *ServerConfig
-	services *Services
+	config        *ServerConfig
+	services      *Services
 }
 
 func (r *RoundBasedRobot) run() {
-	c := cron.New()
+	c := NewWithSecond()
 	spec := "*/1 * * * * ?"
-	err := c.AddFunc(spec, func() {
+	_, err := c.AddFunc(spec, func() {
 		var currentTime = time.Now().UTC().Unix() + r.networkOffset
 
 		if currentTime >= r.status.endTime {
 			r.status = r.getStatus()
 		}
+		fmt.Println("status", r.status)
 		//下注
 		if r.status.status == 1 {
 			//获取下注时间
@@ -90,7 +91,7 @@ func (r *RoundBasedRobot) makeActions() {
 }
 
 func (r *RoundBasedRobot) pushAction() (string, error) {
-	keys, err := r.services.digestSigner.AvailableKeys()
+	keys, err := r.services.digestSigner.AvailableKeys(context.Background())
 	digest, err := hex.DecodeString(r.status.seed)
 	sig, err := r.services.digestSigner.SignDigest(digest, keys[0])
 	data := RevealData{eos.Uint64(r.status.roundId), sig}
@@ -103,8 +104,8 @@ func (r *RoundBasedRobot) pushAction() (string, error) {
 		ActionData: eos.NewActionData(&data),
 	}
 	tx := eos.NewTransaction([]*eos.Action{&action}, &r.services.txOpts)
-	//fmt.Println(tx)
-	signedTx, packedTx, err := r.services.api.SignTransaction(tx, r.services.txOpts.ChainID, eos.CompressionNone)
+	fmt.Println(tx)
+	signedTx, packedTx, err := r.services.api.SignTransaction(context.Background(), tx, r.services.txOpts.ChainID, eos.CompressionNone)
 	if err != nil {
 		return "", err
 	}
@@ -113,7 +114,7 @@ func (r *RoundBasedRobot) pushAction() (string, error) {
 		return "", err
 	}
 	_, err = json.Marshal(packedTx)
-	response, err := r.services.api.PushTransaction(packedTx)
+	response, err := r.services.api.PushTransaction(context.Background(), packedTx)
 	if err != nil {
 		fmt.Println(err)
 		return "", err
@@ -135,4 +136,10 @@ func (r *RoundBasedRobot) getStatus() RoundStatus {
 		}
 	}
 	return RoundStatus{0, 0, 0, ""}
+}
+
+func NewWithSecond() *cron.Cron {
+	secondParser := cron.NewParser(cron.Second | cron.Minute |
+		cron.Hour | cron.Dom | cron.Month | cron.DowOptional | cron.Descriptor)
+	return cron.New(cron.WithParser(secondParser), cron.WithChain())
 }

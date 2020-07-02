@@ -1,12 +1,12 @@
 package revealrobot
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/eoscanada/eos-go"
 	"github.com/eoscanada/eos-go/ecc"
-	"github.com/robfig/cron"
 )
 
 type ActiveBetsTable struct {
@@ -33,11 +33,11 @@ type DiceRobot struct {
 	services *Services
 }
 
-
 func (r *DiceRobot) run() {
-	c := cron.New()
-	spec := "*/1 * * * * ?"
-	_ = c.AddFunc(spec, func() {
+	c := NewWithSecond()
+	spec := "*/2 * * * * ?"
+	_, err := c.AddFunc(spec, func() {
+		fmt.Println("本轮")
 		body, err := getTableRows(r.config.node, r.name, "activebets")
 		if err == nil {
 			var list ActiveBetsTable
@@ -51,11 +51,15 @@ func (r *DiceRobot) run() {
 			}
 		}
 	})
+	if err != nil {
+		fmt.Println(err)
+	}
 	c.Start()
+	select {}
 }
 
 func (r *DiceRobot) pushAction(betId eos.Uint64, seed eos.Checksum256) {
-	keys, err := r.services.digestSigner.AvailableKeys()
+	keys, err := r.services.digestSigner.AvailableKeys(context.Background())
 	digest, err := hex.DecodeString(seed.String())
 	sig, err := r.services.digestSigner.SignDigest(digest, keys[0])
 	data := DiceRevealData{betId, sig}
@@ -69,13 +73,13 @@ func (r *DiceRobot) pushAction(betId eos.Uint64, seed eos.Checksum256) {
 	}
 
 	tx := eos.NewTransaction([]*eos.Action{&action}, &r.services.txOpts)
-	signedTx, packedTx, err := r.services.api.SignTransaction(tx, r.services.txOpts.ChainID, eos.CompressionNone)
+	signedTx, packedTx, err := r.services.api.SignTransaction(context.Background(), tx, r.services.txOpts.ChainID, eos.CompressionNone)
 	if err == nil {
 		_, err = json.MarshalIndent(signedTx, "", "")
 		if err == nil {
 			_, err = json.Marshal(packedTx)
 			if err == nil {
-				response, err := r.services.api.PushTransaction(packedTx)
+				response, err := r.services.api.PushTransaction(context.Background(), packedTx)
 				if err != nil {
 					fmt.Println(err)
 				} else {

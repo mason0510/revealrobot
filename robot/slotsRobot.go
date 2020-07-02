@@ -1,12 +1,12 @@
 package revealrobot
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/eoscanada/eos-go"
 	"github.com/eoscanada/eos-go/ecc"
-	"github.com/robfig/cron"
 	"strconv"
 )
 
@@ -35,10 +35,11 @@ type SlotsRobot struct {
 }
 
 func (r *SlotsRobot) run() {
-	c := cron.New()
+	c := NewWithSecond()
 	spec := "*/1 * * * * ?"
-	_ = c.AddFunc(spec, func() {
+	_, _ = c.AddFunc(spec, func() {
 		body, err := getTableRows(r.config.node, r.name, "activegame")
+		fmt.Println("取得赌注数据: ", "body")
 		if err == nil {
 			var list SlotsActiveGameTable
 			err = json.Unmarshal(body, &list)
@@ -57,7 +58,7 @@ func (r *SlotsRobot) run() {
 }
 
 func (r *SlotsRobot) pushAction(gameId eos.Uint64, seed eos.Checksum256) {
-	keys, err := r.services.digestSigner.AvailableKeys()
+	keys, err := r.services.digestSigner.AvailableKeys(context.Background())
 	digest, err := hex.DecodeString(seed.String())
 	sig, err := r.services.digestSigner.SignDigest(digest, keys[0])
 	data := SlotsRevealData{gameId, sig}
@@ -71,17 +72,35 @@ func (r *SlotsRobot) pushAction(gameId eos.Uint64, seed eos.Checksum256) {
 	}
 
 	tx := eos.NewTransaction([]*eos.Action{&action}, &r.services.txOpts)
-	signedTx, packedTx, err := r.services.api.SignTransaction(tx, r.services.txOpts.ChainID, eos.CompressionNone)
+	signedTx, packedTx, err := r.services.api.SignTransaction(context.Background(), tx, r.services.txOpts.ChainID, eos.CompressionNone)
 	if err == nil {
 		_, err = json.MarshalIndent(signedTx, "", "")
 		if err == nil {
 			_, err = json.Marshal(packedTx)
 			if err == nil {
-				response, err := r.services.api.PushTransaction(packedTx)
+				response, err := r.services.api.PushTransaction(context.Background(), packedTx)
 				if err != nil {
 					fmt.Println(err)
 				} else {
 					fmt.Println(response)
+				}
+			}
+		}
+	}
+}
+
+func (r *SlotsRobot) run1() {
+	fmt.Println(r.config.node)
+	body, err := getTableRows(r.config.node, r.name, "activegame")
+	if err == nil {
+		var list SlotsActiveGameTable
+		err = json.Unmarshal(body, &list)
+
+		if err == nil {
+			for _, row := range list.Rows {
+				if row.Result == 65535 {
+					fmt.Println("=======================老虎机开奖 " + strconv.Itoa(int(row.Id)) + "=============================")
+					r.pushAction(row.Id, row.Seed)
 				}
 			}
 		}

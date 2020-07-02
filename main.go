@@ -12,10 +12,6 @@ import (
 
 var err error
 
-func Run() {
-	revealrobot.RevealRobot()
-}
-
 func main() {
 	//init log
 	logger, err := log.NewLogger(env.LogPath, "debug")
@@ -36,5 +32,5 @@ func main() {
 	revealrobot.Init()
 
 	//robot run
-	Run()
+	revealrobot.RevealRobot()
 }

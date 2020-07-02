@@ -9,8 +9,8 @@ import (
 )
 
 type ServerConfig struct {
-	node      string
-	revealKey string
+	node             string
+	revealKey        string
 	actorAccountName string
 	actorAccountKey  string
 }
